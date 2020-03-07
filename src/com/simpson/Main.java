@@ -45,7 +45,7 @@ public class Main {
             h = (rightLimit - leftLimit) / steps;
             previousIntegral = integral;
             integral = direction * getSimpsonsIntegral(function, steps, leftLimit, h);
-        } while (Math.abs(integral - previousIntegral) > epsilon);
+        } while ((1.0 / 15.0) * Math.abs(integral - previousIntegral) > epsilon);
 
         return new IntegrationResult(integral, steps, Math.abs(integral - previousIntegral));
     }
