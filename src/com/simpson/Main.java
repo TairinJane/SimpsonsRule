@@ -47,7 +47,7 @@ public class Main {
             integral = direction * getSimpsonsIntegral(function, leftLimit, rightLimit, steps);
         } while (theta * Math.abs(integral - previousIntegral) > epsilon);
 
-        return new IntegrationResult(integral, steps, Math.abs(integral - previousIntegral));
+        return new IntegrationResult(integral, steps, theta * Math.abs(integral - previousIntegral));
     }
 
     private static double getSimpsonsIntegral(Function<Double, Double> function, double leftLimit, double rightLimit, int steps) {
@@ -76,7 +76,7 @@ public class Main {
     }
 
     public static void main(String[] args) {
-        df.setMaximumFractionDigits(5);
+        df.setMaximumFractionDigits(10);
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
         System.out.println("Choose function to integrate:\n" +
@@ -128,7 +128,11 @@ public class Main {
         System.out.println(String.format("Integrating function (%d) from %s to %s with epsilon = %s:",
                 functionNumber, df.format(leftLimit), df.format(rightLimit), df.format(epsilon)));
 
-        IntegrationResult result = getIntegralByRungeRule(function, leftLimit, rightLimit, epsilon);
+        IntegrationResult result;
+        if (functionNumber == 5 && leftLimit <= 0 && rightLimit >= 0)
+            result = new IntegrationResult(Double.POSITIVE_INFINITY, 1, 0.0);
+        else result = getIntegralByRungeRule(function, leftLimit, rightLimit, epsilon);
+
         System.out.println("I = " + df.format(result.integral));
         System.out.println("Steps: " + result.steps);
         System.out.println("Calculation error = " + df.format(result.calculationError));
