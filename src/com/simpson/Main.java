@@ -22,11 +22,13 @@ class IntegrationResult {
 public class Main {
 
     private static DecimalFormat df = new DecimalFormat("0", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
+    private static double theta = 1.0 / 15.0;
 
-    private static IntegrationResult getIntegral(double leftLimit, double rightLimit, Function<Double, Double> function, double epsilon) {
+    private static IntegrationResult getIntegralByRungeRule(Function<Double, Double> function, double leftLimit, double rightLimit, double epsilon) {
         double integral = 0;
         double previousIntegral;
         int direction = 1;
+
         if (leftLimit == rightLimit) {
             return new IntegrationResult(integral, 1, 0);
         } else if (leftLimit > rightLimit) {
@@ -37,20 +39,19 @@ public class Main {
         }
 
         int steps = 10;
-        double h = (rightLimit - leftLimit) / steps;
-        integral = direction * getSimpsonsIntegral(function, steps, leftLimit, h);
+        integral = direction * getSimpsonsIntegral(function, leftLimit, rightLimit, steps);
 
         do {
             steps *= 2;
-            h = (rightLimit - leftLimit) / steps;
             previousIntegral = integral;
-            integral = direction * getSimpsonsIntegral(function, steps, leftLimit, h);
-        } while ((1.0 / 15.0) * Math.abs(integral - previousIntegral) > epsilon);
+            integral = direction * getSimpsonsIntegral(function, leftLimit, rightLimit, steps);
+        } while (theta * Math.abs(integral - previousIntegral) > epsilon);
 
         return new IntegrationResult(integral, steps, Math.abs(integral - previousIntegral));
     }
 
-    private static double getSimpsonsIntegral(Function<Double, Double> function, int steps, double leftLimit, double h) {
+    private static double getSimpsonsIntegral(Function<Double, Double> function, double leftLimit, double rightLimit, int steps) {
+        double h = (rightLimit - leftLimit) / steps;
         double integral = 0;
         for (int i = 1; i < steps; i += 2) {
             integral += function.apply(leftLimit + h * (i - 1));
@@ -127,7 +128,7 @@ public class Main {
         System.out.println(String.format("Integrating function (%d) from %s to %s with epsilon = %s:",
                 functionNumber, df.format(leftLimit), df.format(rightLimit), df.format(epsilon)));
 
-        IntegrationResult result = getIntegral(leftLimit, rightLimit, function, epsilon);
+        IntegrationResult result = getIntegralByRungeRule(function, leftLimit, rightLimit, epsilon);
         System.out.println("I = " + df.format(result.integral));
         System.out.println("Steps: " + result.steps);
         System.out.println("Calculation error = " + df.format(result.calculationError));
