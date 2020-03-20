@@ -22,7 +22,6 @@ class IntegrationResult {
 public class Main {
 
     private static DecimalFormat df = new DecimalFormat("0", DecimalFormatSymbols.getInstance(Locale.ENGLISH));
-    private static double theta = 1.0 / 15.0;
 
     private static IntegrationResult getIntegralByRungeRule(Function<Double, Double> function, double leftLimit, double rightLimit, double epsilon) {
         double integral = 0;
@@ -41,6 +40,7 @@ public class Main {
         int steps = 10;
         integral = direction * getSimpsonsIntegral(function, leftLimit, rightLimit, steps);
 
+        double theta = 1.0 / 15.0;
         do {
             steps *= 2;
             previousIntegral = integral;
@@ -80,8 +80,8 @@ public class Main {
         BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 
         System.out.println("Choose function to integrate:\n" +
-                "(1) x^2 - 8\n" +
-                "(2) x^3 + 10x^2\n" +
+                "(1) ln(x)\n" +
+                "(2) sin(x)/x\n" +
                 "(3) x^4 - 5x + 23\n" +
                 "(4) -8*cos(x) - 3x\n" +
                 "(5) 12/x^3 + sin(x+6)");
@@ -99,10 +99,13 @@ public class Main {
         Function<Double, Double> function;
         switch (functionNumber) {
             case 1:
-                function = x -> x * x;
+                function = Math::log;
                 break;
             case 2:
-                function = x -> (Math.pow(x, 3) + 10 * x * x);
+                function = x -> {
+                    if (x == 0) return 1.0;
+                    else return Math.sin(x) / x;
+                };
                 break;
             case 3:
                 function = x -> (Math.pow(x, 4) + 5 * x + 23);
@@ -125,16 +128,19 @@ public class Main {
         double epsilon = getDoubleFromConsole(reader);
         System.out.println();
 
-        System.out.println(String.format("Integrating function (%d) from %s to %s with epsilon = %s:",
-                functionNumber, df.format(leftLimit), df.format(rightLimit), df.format(epsilon)));
-
-        IntegrationResult result;
+        IntegrationResult result = null;
         if (functionNumber == 5 && leftLimit <= 0 && rightLimit >= 0)
             result = new IntegrationResult(Double.POSITIVE_INFINITY, 1, 0.0);
+        else if (functionNumber == 1 && (leftLimit <= 0 || rightLimit <= 0))
+            System.out.println("Limits is out of function domain");
         else result = getIntegralByRungeRule(function, leftLimit, rightLimit, epsilon);
 
-        System.out.println("I = " + df.format(result.integral));
-        System.out.println("Steps: " + result.steps);
-        System.out.println("Calculation error = " + df.format(result.calculationError));
+        if (result != null) {
+            System.out.println(String.format("Integrating function (%d) from %s to %s with epsilon = %s:",
+                    functionNumber, df.format(leftLimit), df.format(rightLimit), df.format(epsilon)));
+            System.out.println("I = " + df.format(result.integral));
+            System.out.println("Steps: " + result.steps);
+            System.out.println("Calculation error = " + df.format(result.calculationError));
+        }
     }
 }
